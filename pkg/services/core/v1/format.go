@@ -40,11 +40,11 @@ func DingtalkMessageFormat(isRenders, isMerge bool, client *models.Client, conte
 	if isRenders {
 		if isMerge {
 			msg := MessageJoint(contentList, utils.VarDingtalk)
-			data := format.PackDingtalkMessage(client.ExtendDingtalk.RobotKeyword, msg, false, nil)
+			data := format.PackDingtalkMessage(client.ExtendDingtalk.RobotKeyword, msg, false, nil, nil)
 			msgList = append(msgList, data)
 		} else {
 			for _, msg := range contentList {
-				data := format.PackDingtalkMessage(client.ExtendDingtalk.RobotKeyword, msg, false, nil)
+				data := format.PackDingtalkMessage(client.ExtendDingtalk.RobotKeyword, msg, false, nil, nil)
 				msgList = append(msgList, data)
 			}
 		}

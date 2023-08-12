@@ -41,11 +41,11 @@ func (d *DingtalkMessageAssembled) AssembledData(isRenders, isMerge bool, client
 	if isRenders {
 		if isMerge {
 			msg := v1.MessageJoint(contentList, utils.VarDingtalk)
-			data := format.PackDingtalkMessage(client.ExtendDingtalk.RobotKeyword, msg, false, nil)
+			data := format.PackDingtalkMessage(client.ExtendDingtalk.RobotKeyword, msg, false, nil, nil)
 			msgList = append(msgList, data)
 		} else {
 			for _, msg := range contentList {
-				data := format.PackDingtalkMessage(client.ExtendDingtalk.RobotKeyword, msg, false, nil)
+				data := format.PackDingtalkMessage(client.ExtendDingtalk.RobotKeyword, msg, false, nil, nil)
 				msgList = append(msgList, data)
 			}
 		}
