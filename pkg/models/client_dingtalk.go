@@ -26,10 +26,11 @@ type Dingtalk struct {
 	ClientId           int            `json:"client_id"`
 	RobotKeyword       string         `json:"robot_keyword"`
 	RobotUrl           string         `json:"robot_url"`
-	AtAll              bool           `json:"at_all"`
+	IsAtAll            bool           `json:"is_at_all"`
 	AtMobiles          datatypes.JSON `json:"at_mobiles"`
-	RobotUrlList       []Url          `gorm:"-:all" json:"robot_url_list"` //得到前端提交过来的robot_url_list字段
-	RobotUrlRandomList []string       `gorm:"-:all" json:"-"`              //根据robot_url_list，得到一个url随机列表
+	AtDingtalkIds      datatypes.JSON `json:"at_dingtalk_ids"`
+	RobotUrlList       []Url          `json:"robot_url_list" gorm:"-:all"` //得到前端提交过来的robot_url_list字段
+	RobotUrlRandomList []string       `json:"-" gorm:"-:all"`              //根据robot_url_list，得到一个url随机列表
 }
 
 func (*Dingtalk) TableName() string {

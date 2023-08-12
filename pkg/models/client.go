@@ -20,11 +20,11 @@ type Client struct {
 	ClientDescription       string             `json:"client_description"`
 	ClientType              string             `json:"client_type"`
 	IsActive                bool               `json:"is_active"`
-	ClientInfo              json.RawMessage    `gorm:"-:all" json:"client_info"`
-	ExtendDingtalk          *Dingtalk          `gorm:"-:all" json:"-"`
-	ExtendFeishu            *Feishu            `gorm:"-:all" json:"-"`
-	ExtendWechatApplication *WechatApplication `gorm:"-:all" json:"-"`
-	ExtendWechatRobot       *WechatRobot       `gorm:"-:all" json:"-"`
+	ClientInfo              json.RawMessage    `json:"client_info" gorm:"-:all" `
+	ExtendDingtalk          *Dingtalk          `json:"-" gorm:"-:all"`
+	ExtendFeishu            *Feishu            `json:"-" gorm:"-:all"`
+	ExtendWechatApplication *WechatApplication `json:"-" gorm:"-:all"`
+	ExtendWechatRobot       *WechatRobot       `json:"-" gorm:"-:all"`
 }
 
 func (*Client) TableName() string {
@@ -43,6 +43,9 @@ func AddClient(c *Client) (*Client, error) {
 		c.ExtendDingtalk.ClientId = int(c.ID)
 		c.ExtendDingtalk.RobotUrlRandomList = JoinUrl(c.ExtendDingtalk.RobotUrlList) //url随机列表
 		c.ExtendDingtalk.RobotUrl = strings.Join(c.ExtendDingtalk.RobotUrlRandomList, "\n")
+		//c.ExtendDingtalk.IsAtAll = c.ExtendDingtalk.IsAtAll
+		//c.ExtendDingtalk.AtMobiles = c.ExtendDingtalk.AtMobiles
+		//c.ExtendDingtalk.AtDingtalkIds = c.ExtendDingtalk.AtDingtalkIds
 		dingtalkResult := database.DB.Default.Create(&c.ExtendDingtalk)
 		if dingtalkResult.Error != nil {
 			return c, dingtalkResult.Error
