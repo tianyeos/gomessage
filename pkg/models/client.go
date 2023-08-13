@@ -15,72 +15,84 @@ type Client struct {
 	CreatedAt               time.Time          `json:"-"`
 	UpdatedAt               time.Time          `json:"-"`
 	DeletedAt               gorm.DeletedAt     `json:"-" gorm:"index"`
-	Namespace               string             `json:"namespace"`
-	ClientName              string             `json:"client_name"`
-	ClientDescription       string             `json:"client_description"`
-	ClientType              string             `json:"client_type"`
-	IsActive                bool               `json:"is_active"`
-	ClientInfo              json.RawMessage    `json:"client_info" gorm:"-:all" `
-	ExtendDingtalk          *Dingtalk          `json:"-" gorm:"-:all"`
-	ExtendFeishu            *Feishu            `json:"-" gorm:"-:all"`
-	ExtendWechatApplication *WechatApplication `json:"-" gorm:"-:all"`
-	ExtendWechatRobot       *WechatRobot       `json:"-" gorm:"-:all"`
+	Namespace               string             `json:"namespace"`                 //命名空间（也就是用户使用时看到的通道名称）
+	ClientName              string             `json:"client_name"`               //客户端名称
+	ClientDescription       string             `json:"client_description"`        //客户端描述
+	ClientType              string             `json:"client_type"`               //客户端类型
+	IsActive                bool               `json:"is_active"`                 //客户端是否激活
+	ClientInfo              json.RawMessage    `json:"client_info" gorm:"-:all" ` //客户端详情（此时拿到的是json格式的数据，需要额外的逻辑把json处理成对应的结构体，存放到"扩展表"中）
+	ExtendDingtalk          *Dingtalk          `json:"-" gorm:"-:all"`            //扩展表：存放`钉钉群机器人`客户端的扩展数据
+	ExtendFeishu            *Feishu            `json:"-" gorm:"-:all"`            //扩展表：存放`飞书群机器人`客户端的扩展数据
+	ExtendWechatApplication *WechatApplication `json:"-" gorm:"-:all"`            //扩展表：存放`企业微信应用号`客户端的扩展数据
+	ExtendWechatRobot       *WechatRobot       `json:"-" gorm:"-:all"`            //扩展表：存放`企业微信群机器人`客户端的扩展数据
 }
 
 func (*Client) TableName() string {
 	return "clients"
 }
 
-func AddClient(c *Client) (*Client, error) {
-	c.IsActive = false
-	createResult := database.DB.Default.Create(&c)
+func AddClient(generalClient *Client) (*Client, error) {
+
+	//TODO: 保存client客户端的"通用数据"
+	generalClient.IsActive = false
+	createResult := database.DB.Default.Create(&generalClient)
 	if createResult.Error != nil {
-		return c, createResult.Error
+		return generalClient, createResult.Error
 	}
 
-	switch c.ClientType {
+	//TODO: 保存client客户端的"扩展数据"
+	switch generalClient.ClientType {
+
+	//钉钉群机器人
 	case utils.VarDingtalk:
-		c.ExtendDingtalk.ClientId = int(c.ID)
-		c.ExtendDingtalk.RobotUrlRandomList = JoinUrl(c.ExtendDingtalk.RobotUrlList) //url随机列表
-		c.ExtendDingtalk.RobotUrl = strings.Join(c.ExtendDingtalk.RobotUrlRandomList, "\n")
-		//c.ExtendDingtalk.IsAtAll = c.ExtendDingtalk.IsAtAll
-		//c.ExtendDingtalk.AtMobiles = c.ExtendDingtalk.AtMobiles
-		//c.ExtendDingtalk.AtDingtalkIds = c.ExtendDingtalk.AtDingtalkIds
-		dingtalkResult := database.DB.Default.Create(&c.ExtendDingtalk)
+		generalClient.ExtendDingtalk.ClientId = int(generalClient.ID)                                        //指定扩展表中的client_id，该id就是通用client的通用id
+		generalClient.ExtendDingtalk.RobotUrlRandomList = JoinUrl(generalClient.ExtendDingtalk.RobotUrlList) //url随机列表
+		generalClient.ExtendDingtalk.RobotUrl = strings.Join(generalClient.ExtendDingtalk.RobotUrlRandomList, "\n")
+
+		//generalClient.ExtendDingtalk.IsAtAll = generalClient.ExtendDingtalk.IsAtAll
+		//generalClient.ExtendDingtalk.AtMobiles = generalClient.ExtendDingtalk.AtMobiles
+		//generalClient.ExtendDingtalk.AtDingtalkIds = generalClient.ExtendDingtalk.AtDingtalkIds
+
+		dingtalkResult := database.DB.Default.Create(&generalClient.ExtendDingtalk)
 		if dingtalkResult.Error != nil {
-			return c, dingtalkResult.Error
+			return generalClient, dingtalkResult.Error
 		}
 
+	//飞书群机器人
 	case utils.VarFeishu:
-		c.ExtendFeishu.ClientId = int(c.ID)
-		c.ExtendFeishu.RobotUrlRandomList = JoinUrl(c.ExtendFeishu.RobotUrlList) //url随机列表
-		c.ExtendFeishu.RobotUrl = strings.Join(c.ExtendFeishu.RobotUrlRandomList, "\n")
-		feishuResult := database.DB.Default.Create(&c.ExtendFeishu)
+		generalClient.ExtendFeishu.ClientId = int(generalClient.ID)
+		generalClient.ExtendFeishu.RobotUrlRandomList = JoinUrl(generalClient.ExtendFeishu.RobotUrlList) //url随机列表
+		generalClient.ExtendFeishu.RobotUrl = strings.Join(generalClient.ExtendFeishu.RobotUrlRandomList, "\n")
+		feishuResult := database.DB.Default.Create(&generalClient.ExtendFeishu)
 		if feishuResult.Error != nil {
-			return c, feishuResult.Error
+			return generalClient, feishuResult.Error
 		}
 
+	//企业微信群机器人
 	case utils.VarWechatRobot:
-		c.ExtendWechatRobot.ClientId = int(c.ID)
-		c.ExtendWechatRobot.RobotUrlRandomList = JoinUrl(c.ExtendWechatRobot.RobotUrlList) //url随机列表
-		c.ExtendWechatRobot.RobotUrl = strings.Join(c.ExtendWechatRobot.RobotUrlRandomList, "\n")
-		result := database.DB.Default.Create(&c.ExtendWechatRobot)
+		generalClient.ExtendWechatRobot.ClientId = int(generalClient.ID)
+		generalClient.ExtendWechatRobot.RobotUrlRandomList = JoinUrl(generalClient.ExtendWechatRobot.RobotUrlList) //url随机列表
+		generalClient.ExtendWechatRobot.RobotUrl = strings.Join(generalClient.ExtendWechatRobot.RobotUrlRandomList, "\n")
+		result := database.DB.Default.Create(&generalClient.ExtendWechatRobot)
 		if result.Error != nil {
-			return c, result.Error
+			return generalClient, result.Error
 		}
 
+	//企业微信应用号
 	case utils.VarWechatApplication:
-		c.ExtendWechatApplication.ClientId = int(c.ID)
-		wechatResult := database.DB.Default.Create(&c.ExtendWechatApplication)
+		generalClient.ExtendWechatApplication.ClientId = int(generalClient.ID)
+		wechatResult := database.DB.Default.Create(&generalClient.ExtendWechatApplication)
 		if wechatResult.Error != nil {
-			return c, wechatResult.Error
+			return generalClient, wechatResult.Error
 		}
 
+	//不属于以上任何客户端类型
 	default:
-		return c, errors.New("未知的ClientType=" + c.ClientType)
+		return generalClient, errors.New("未知的ClientType=" + generalClient.ClientType)
 	}
 
-	return c, nil
+	//给出返回值
+	return generalClient, nil
 }
 
 func UpdateClientInfo(id int, newClient *Client) (*Client, error) {

@@ -10,6 +10,7 @@ type Url struct {
 	Url string `json:"url"`
 }
 
+// JoinUrl 把URL结构体转换为string切片
 func JoinUrl(urls []Url) []string {
 	var uList []string
 	for _, v := range urls {

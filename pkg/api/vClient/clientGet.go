@@ -1,4 +1,4 @@
-package client
+package vClient
 
 import (
 	"github.com/gin-gonic/gin"
@@ -35,6 +35,7 @@ func GetClient(g *gin.Context) {
 
 	id, _ := strconv.Atoi(g.Param("id"))
 	client, err := models.GetClientById(id)
+
 	if err != nil {
 		g.JSON(http.StatusBadRequest, utils.ResponseFailure("查询错误", err))
 	} else {
